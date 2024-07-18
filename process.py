@@ -3,6 +3,7 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+import os
 
 def subir_formulario(driver, info):
     driver.get("https://roc.myrb.io/s1/forms/M6I8P2PDOZFDBYYG")
@@ -31,7 +32,12 @@ def enviar_email_simulado(responsable, proceso, estado, observacion, fecha_compr
     print(f"Fecha de Compromiso: {fecha_compromiso}")
 
 def main():
-    wb = xw.Book(r"C:\Users\María\Desktop\proyecto-rockebot\base_seguimiento.xlsx")
+    # Obtiene la ruta absoluta del directorio actual
+    current_dir = os.path.abspath(os.path.dirname(__file__))
+    file_name = "base_seguimiento.xlsx"
+    file_path = os.path.join(current_dir, file_name)
+
+    wb = xw.Book(file_path)
     hoja = wb.sheets[0]
     encabezados = hoja.range("A1:J1").value
     encabezados = [encabezado.strip() for encabezado in encabezados]  
