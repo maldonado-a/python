@@ -32,7 +32,6 @@ def enviar_email_simulado(responsable, proceso, estado, observacion, fecha_compr
     print(f"Fecha de Compromiso: {fecha_compromiso}")
 
 def main():
-    # Obtiene la ruta absoluta del directorio actual
     current_dir = os.path.abspath(os.path.dirname(__file__))
     file_name = "base_seguimiento.xlsx"
     file_path = os.path.join(current_dir, file_name)
