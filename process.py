@@ -7,7 +7,6 @@ import os
 
 def subir_formulario(driver, info):
     driver.get("https://roc.myrb.io/s1/forms/M6I8P2PDOZFDBYYG")
-
     try:
         WebDriverWait(driver, 30).until(
             EC.presence_of_element_located((By.NAME, "process"))
@@ -36,45 +35,53 @@ def main():
     file_name = "base_seguimiento.xlsx"
     file_path = os.path.join(current_dir, file_name)
 
-    wb = xw.Book(file_path)
-    hoja = wb.sheets[0]
-    encabezados = hoja.range("A1:J1").value
-    encabezados = [encabezado.strip() for encabezado in encabezados]  
-    print("Encabezados encontrados:", encabezados)
+    app = xw.App(visible=False)
+    wb = app.books.open(file_path)
+    try:
+        hoja = wb.sheets[0]
+        encabezados = hoja.range("A1:J1").value
+        encabezados = [encabezado.strip() for encabezado in encabezados]
+        print("Encabezados encontrados:", encabezados)
 
-    columnas = {encabezado: idx for idx, encabezado in enumerate(encabezados)}
-    print("Columnas mapeadas:", columnas)
+        columnas = {encabezado: idx for idx, encabezado in enumerate(encabezados)}
+        print("Columnas mapeadas:", columnas)
 
-    driver = webdriver.Chrome()
-    filas = hoja.range("A2:J" + str(hoja.cells.last_cell.row)).value
+        driver = webdriver.Chrome()
+        try:
+            filas = hoja.range("A2:J" + str(hoja.cells.last_cell.row)).value
 
-    for fila in filas:
-        if not fila or fila[columnas["Estado"]] is None:
-            continue
-        estado = fila[columnas["Estado"]]
+            for fila in filas:
+                if not fila or fila[columnas["Estado"]] is None:
+                    continue
+                estado = fila[columnas["Estado"]]
 
-        if estado == "Regularizado":
-            info = {
-                'proceso': fila[columnas["Auditoría/Proceso"]],
-                'tipo_riesgo': fila[columnas["Tipo de Riesgo"]],
-                'severidad': fila[columnas["Severidad\nObservación"]],
-                'responsable': fila[columnas["Responsable"]],
-                'fecha_compromiso': fila[columnas["Fecha\nCompromiso"]].strftime('%Y-%m-%d'),
-                'observacion': fila[columnas["Observación"]],
-            }
-            subir_formulario(driver, info)
-        elif estado == "Atrasado":
-            info = {
-                'proceso': fila[columnas["Auditoría/Proceso"]],
-                'estado': estado,
-                'observacion': fila[columnas["Observación"]],
-                'fecha_compromiso': fila[columnas["Fecha\nCompromiso"]].strftime('%Y-%m-%d'),
-                'responsable': fila[columnas["Correo responsable"]],
-            }
-            enviar_email_simulado(info['responsable'], info['proceso'], info['estado'], info['observacion'], info['fecha_compromiso'])
-        else:
-            print(f"Estado '{estado}' ignorado para el proceso '{fila[columnas['Auditoría/Proceso']]}'.")
-    driver.quit()
+                if estado == "Regularizado":
+                    info = {
+                        'proceso': fila[columnas["Auditoría/Proceso"]],
+                        'tipo_riesgo': fila[columnas["Tipo de Riesgo"]],
+                        'severidad': fila[columnas["Severidad\nObservación"]],
+                        'responsable': fila[columnas["Responsable"]],
+                        'fecha_compromiso': fila[columnas["Fecha\nCompromiso"]].strftime('%Y-%m-%d'),
+                        'observacion': fila[columnas["Observación"]],
+                    }
+                    subir_formulario(driver, info)
+                elif estado == "Atrasado":
+                    info = {
+                        'proceso': fila[columnas["Auditoría/Proceso"]],
+                        'estado': estado,
+                        'observacion': fila[columnas["Observación"]],
+                        'fecha_compromiso': fila[columnas["Fecha\nCompromiso"]].strftime('%Y-%m-%d'),
+                        'responsable': fila[columnas["Correo responsable"]],
+                    }
+                    enviar_email_simulado(info['responsable'], info['proceso'], info['estado'], info['observacion'], info['fecha_compromiso'])
+                else:
+                    print(f"Estado '{estado}' ignorado para el proceso '{fila[columnas['Auditoría/Proceso']]}'.")
+        finally:
+            driver.quit()
+    finally:
+        wb.close()
+        app.quit()
+        print("Archivo Excel cerrado y aplicación Excel terminada")
 
 if __name__ == "__main__":
     main()
